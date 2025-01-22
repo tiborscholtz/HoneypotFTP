@@ -25,7 +25,7 @@ HoneypotFTP is a python based application that acts as an FTP server - except th
 
 Before installing HoneypotFTP, make sure you have the following installed:
 
-- **Python3** (7.3 or higher)
+- **Python3** (3.12 or higher)
 - **Open port for data and communication** HoneypotFTP recommends open ports if the given ports are closed.
 
 ### Step-by-Step Installation
