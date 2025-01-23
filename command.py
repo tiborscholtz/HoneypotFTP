@@ -1,8 +1,8 @@
 import re
 class Command:
 
-    def __init__(self,_command):
-        self._plain_command = _command
+    def __init__(self,_command:bytes):
+        self._plain_command = _command.decode('utf-8')
         _command_temporary = re.split('\s+', _command)
         self._command = _command_temporary[0]
         self._parameters = list()
@@ -10,14 +10,20 @@ class Command:
             self._parameters = _command_temporary[0::]
         pass
 
-    def is_command(self,_command_to_compare):
+    def is_command(self,_command_to_compare) -> bool:
         return _command_to_compare == self._command
     
-    def get_parameter_at_index(self,_index):
+    def get_parameter_at_index(self,_index) -> any:
         return self._parameters[_index]
     
-    def has_parameter_at_index(self,_index):
+    def has_parameter_at_index(self,_index) -> bool:
         return self._parameters[_index] is not None
     
-    def has_parameters(self):
+    def has_parameters(self) -> bool:
         return len(self._parameters) > 0
+    
+    def get_parameters_length(self) -> int:
+        return len(self._parameters)
+
+    def get_response(self,_parameters):
+        pass

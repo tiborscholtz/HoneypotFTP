@@ -1,11 +1,12 @@
 class Configuration:
-    def __init__(self,_type, _data_port,_command_port,_filesystem_depth,_file_ratio,_directory_ratio):
+    def __init__(self,_type, _data_port,_command_port,_filesystem_depth,_file_ratio,_directory_ratio,_average_file_per_directory):
         self._type = _type
         self._data_port = _data_port
         self._command_port = _command_port
         self._filesystem_depth = _filesystem_depth
         self._file_ratio = _file_ratio
         self._directory_ratio = _directory_ratio
+        self._average_file_per_directory = _average_file_per_directory
         pass
     
     def get_type(self):
