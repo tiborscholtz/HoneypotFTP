@@ -11,18 +11,18 @@ configuration = Configuration(config["server_type"],config["data_port"],config["
 print(config["data_port"])
 selector = selectors.DefaultSelector()
 
-selector = selectors.DefaultSelector()
-
 def accept_connection(server_sock):
     """Accept a new connection and create a Connection object."""
     conn, addr = server_sock.accept()
     print(f"Accepted connection from {addr}")
     connection = Connection(conn, addr, selector,configuration)
-    selector.register(conn, selectors.EVENT_READ, connection.handle_read)
+    if not selector.get_map().get(conn.fileno()):  
+        selector.register(conn, selectors.EVENT_READ, connection.handle_connection)
 
 def start_server(host='127.0.0.1', port=config["data_port"]):
     """Start the non-blocking server."""
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow address reuse
     server_sock.bind((host, port))
     server_sock.listen(100)
     server_sock.setblocking(False)  # Set the server socket to non-blocking mode
@@ -37,6 +37,7 @@ def start_server(host='127.0.0.1', port=config["data_port"]):
     except KeyboardInterrupt:
         print("Server is shutting down...")
     finally:
+        server_sock.close()
         selector.close()
 
 if __name__ == "__main__":
