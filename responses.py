@@ -7,11 +7,11 @@ RESPONSES = {
             },
             {
                 "type":"plain",
-                "content":"220-You are user number 1 of 50 allowed."
+                "content":"220-You are user number _CURRENT_ of _ALLOWED_USERS_ allowed."
             },
             {
                 "type":"plain",
-                "content":"220-Local time is now 23:34. Server port: 21."
+                "content":"220-Local time is now _TIME_. Server port: _PORT_."
             },
             {
                 "type":"plain",
@@ -96,6 +96,26 @@ RESPONSES = {
             {
                 "type":"plain",
                 "content":"221 Logout."
+            }
+        ]
+    },
+    "RETR":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"150-Accepted data connection"
+            },
+            {
+                "type":"plain",
+                "content":"150 _BYTESTODOWNLOAD_ kbytes to download"
+            },
+            {
+                "type":"plain",
+                "content":"226-File successfully transferred"
+            },
+            {
+                "type":"plain",
+                "content":"226 _SECONDSTOTRANSFER_ seconds (measured here), _MBYTESPERSECOND_ Mbytes per second"
             }
         ]
     }

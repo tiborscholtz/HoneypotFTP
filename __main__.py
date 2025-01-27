@@ -7,15 +7,14 @@ from connection import Connection
 file = open("./config.json")
 config = json.loads(file.read())
 file.close()
-configuration = Configuration(config["server_type"],config["data_port"],config["command_port"],config["filesystem_depth"],config["file_ratio"],config["directory_ratio"],config["average_file_per_directory"])
-print(config["data_port"])
+configuration = Configuration(config["server_type"],config["data_port"],config["command_port"],config["filesystem_depth"],config["file_ratio"],config["directory_ratio"],config["average_file_per_directory"],config["allowed_users"])
 selector = selectors.DefaultSelector()
 
 def accept_connection(server_sock):
     """Accept a new connection and create a Connection object."""
     conn, addr = server_sock.accept()
     print(f"Accepted connection from {addr}")
-    connection = Connection(conn, addr, selector,configuration)
+    connection = Connection(conn, addr[0], selector,configuration,configuration.get_logging())
     if not selector.get_map().get(conn.fileno()):  
         selector.register(conn, selectors.EVENT_READ, connection.handle_connection)
 
