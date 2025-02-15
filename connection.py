@@ -9,7 +9,8 @@ from logger import Logger
 
 class Connection:
 
-    def __init__(self,_connection,_ip_address,_selector,_configuration:Configuration,_logging):
+    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging):
+        self._id = _id
         self._selector = _selector
         self._connection = _connection
         self._ip_address = _ip_address
@@ -24,6 +25,16 @@ class Connection:
         _response = self._get_command_response(command)
         self.send_responses(_response)
         pass
+
+
+    def get_id(self):
+        return self._id
+    
+    def get_ip_address(self):
+        return self._ip_address
+    
+    def get_connected_at(self):
+        return self._connected_at
 
     def _setup_data_socket(self) -> dict:
         self._data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

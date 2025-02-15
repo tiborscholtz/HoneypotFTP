@@ -38,3 +38,17 @@ class Configuration:
     def get_average_entity_per_directory(self):
         return self._average_entity_per_directory
     
+    def get_object_format(self):
+        return {
+            "headers": ["Property", "Value","Description"],
+            "data": [
+                ["Type",self._type,"HoneyFTP can emulate several FTP server's response palette."],
+                ["Data port",self._data_port,"TODO"],
+                ["Command port", self._command_port,"Default port used for communiation between the server and the clients"],
+                ["Filesystem depth", self._filesystem_depth,"The server creates a file structure, with the given amount of depth"],
+                ["File ratio", self._file_ratio,"Percent of files per level"],
+                ["Directory ratio", self._directory_ratio,"Percent of directories per level"],
+                ["Average entity per directory", self._average_entity_per_directory,"Amount of entities per level"],
+                ["Logging", self._logging,"Enable logging and creation of log files"],
+                ["Allowed users", self._allowed_users,"Allowed users for parallel usage"],
+         ]}

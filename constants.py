@@ -34,3 +34,26 @@ DIRECTORIES = {
     "logs": {"files": ["json","txt","log"], "directories": []},
     "database": {"files": ["sql","sqlite","db"], "directories": []}
 }
+
+CURSES_OPTIONS = [
+    {
+        "title":"Welcome to HoneypotFTP!",
+        "key":"c",
+        "text":"Show current connections"
+    },
+    {
+        "title":"Server configuration",
+        "key":"s",
+        "text":"Show server configuration"
+    },
+    {
+        "title":"Log file explorer",
+        "key":"l",
+        "text":"Show created log files"
+    },
+    {
+        "title":"Quit HoneypotFTP",
+        "key":"q",
+        "text":"Quit HoneypotFTP"
+    }
+]
