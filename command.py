@@ -3,12 +3,12 @@ from responses import RESPONSES
 class Command:
 
     def __init__(self,_command:bytes):
-        self._plain_command = _command.decode('utf-8')
+        self._plain_command = _command.decode('utf-8').strip()
         _command_temporary = re.split('\s+', self._plain_command)
         self._command = _command_temporary[0]
         self._parameters = list()
         if len(_command_temporary) > 1:
-            self._parameters = _command_temporary[0::]
+            self._parameters = _command_temporary[1::]
         pass
 
     def is_command(self,_command_to_compare) -> bool:
@@ -40,6 +40,4 @@ class Command:
                 one_response["content"] = one_response["content"].replace("_"+p.upper()+"_",str(_parameters[p]))
             pass
             return_data.append(one_response)
-        print("return_data")
-        print(return_data)
         return return_data

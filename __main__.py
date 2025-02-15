@@ -4,10 +4,11 @@ import socket
 import time
 from configuration import Configuration
 from connection import Connection
+from filestructure import FileStructure
 file = open("./config.json")
 config = json.loads(file.read())
 file.close()
-configuration = Configuration(config["server_type"],config["data_port"],config["command_port"],config["filesystem_depth"],config["file_ratio"],config["directory_ratio"],config["average_file_per_directory"],config["allowed_users"])
+configuration = Configuration(config["server_type"],config["data_port"],config["command_port"],config["filesystem_depth"],config["file_ratio"],config["directory_ratio"],config["average_entity_per_directory"],config["logging"],config["allowed_users"])
 selector = selectors.DefaultSelector()
 
 def accept_connection(server_sock):
@@ -18,7 +19,7 @@ def accept_connection(server_sock):
     if not selector.get_map().get(conn.fileno()):  
         selector.register(conn, selectors.EVENT_READ, connection.handle_connection)
 
-def start_server(host='127.0.0.1', port=config["data_port"]):
+def start_server(host='127.0.0.1', port=config["command_port"]):
     """Start the non-blocking server."""
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow address reuse
@@ -39,5 +40,12 @@ def start_server(host='127.0.0.1', port=config["data_port"]):
         server_sock.close()
         selector.close()
 
+def create_server_structure():
+    f = FileStructure(configuration.get_filesystem_depth(),configuration.get_file_ratio(),configuration.get_directory_ratio(),configuration.get_average_entity_per_directory())
+    f.generate_directory_structure()
+    pass
+
 if __name__ == "__main__":
+    #create_server_structure()
     start_server()
+    pass

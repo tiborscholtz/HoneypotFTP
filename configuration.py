@@ -1,12 +1,12 @@
 class Configuration:
-    def __init__(self,_type, _data_port,_command_port,_filesystem_depth,_file_ratio,_directory_ratio,_average_file_per_directory,_logging,_allowed_users):
+    def __init__(self,_type, _data_port,_command_port,_filesystem_depth,_file_ratio,_directory_ratio,_average_entity_per_directory,_logging,_allowed_users):
         self._type = _type
         self._data_port = _data_port
         self._command_port = _command_port
         self._filesystem_depth = _filesystem_depth
         self._file_ratio = _file_ratio
         self._directory_ratio = _directory_ratio
-        self._average_file_per_directory = _average_file_per_directory
+        self._average_entity_per_directory = _average_entity_per_directory
         self._logging = _logging
         self._allowed_users = _allowed_users
         pass
@@ -34,4 +34,7 @@ class Configuration:
     
     def get_allowed_users(self):
         return self._logging
+    
+    def get_average_entity_per_directory(self):
+        return self._average_entity_per_directory
     

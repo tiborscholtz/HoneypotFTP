@@ -84,6 +84,10 @@ RESPONSES = {
             {
                 "type":"plain",
                 "content":"226 6 _TOTALMATCHES_ total"
+            },
+            {
+                "type":"data",
+                "content":"_DATA_"
             }
         ]
     },
