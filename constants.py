@@ -47,9 +47,9 @@ CURSES_OPTIONS = [
         "text":"Show server configuration"
     },
     {
-        "title":"Log file explorer",
+        "title":"Command log explorer",
         "key":"l",
-        "text":"Show created log files"
+        "text":"Show created logs of commands, created by users"
     },
     {
         "title":"Quit HoneypotFTP",

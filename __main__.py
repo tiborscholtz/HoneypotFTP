@@ -7,18 +7,15 @@ import queue
 import sys
 import os
 from typing import List
-from configuration import Configuration
+from configuration import configuration
 from connection import Connection
+from connectionlog import ConnectionLog
 from filestructure import FileStructure
 from screen import Screen
 connections: List[Connection] = list()
+connectionlogs : List[ConnectionLog] = list()
 import threading
-file = open("./config.json")
-config = json.loads(file.read())
-file.close()
-configuration = Configuration(config["server_type"],config["data_port"],config["command_port"],config["filesystem_depth"],config["file_ratio"],config["directory_ratio"],config["average_entity_per_directory"],config["logging"],config["allowed_users"])
 selector = selectors.DefaultSelector()
-message_queue = queue.Queue()
 screen = Screen()
 
 
@@ -76,6 +73,17 @@ def curses_interface(stdscr):
             config_data = configuration.get_object_format()
             screen.print_table(stdscr,col_widths,config_data["headers"],config_data["data"],start_x,start_y)
             pass
+        if screen.is_current_page("l"):
+            col_widths = [40, 40,70]  # Column widths
+            col_width_max = floor((maxx / 2) - (sum(col_widths) / 2))
+            start_y, start_x = 10, col_width_max  # Starting position
+            config_data = configuration.get_object_format()
+            columns = ["IP Address","Timestamp","Text"]
+            data = []
+            for i in range(len(connectionlogs)):
+                data.append([connectionlogs[i].get_ip_address(),connectionlogs[i].get_timestamp(),connectionlogs[i].get_text()])
+            screen.print_table(stdscr,col_widths,columns,data,start_x,start_y)
+            pass
         key = stdscr.getch()  # Capture keypress
         if key == ord('q'):
             break  # Quit when 'q' is pressed
@@ -89,10 +97,22 @@ def curses_interface(stdscr):
             stdscr.clear()
             stdscr.refresh()
             pass
+        if key == ord('l'):
+            screen.change_current_page("l")
+            stdscr.clear()
+            stdscr.refresh()
+            pass
         if key != -1:  # If a valid key is pressed
             stdscr.refresh()
         try:
-            msg = message_queue.get_nowait()  # Non-blocking get from queue
+            msg = configuration.get_message()  # Non-blocking get from queue
+            sys.stdout = sys.__stdout__
+            print("msg")
+            print(msg)
+            if "type" not in msg or "data" not in msg:
+                continue
+            if msg["type"] == "send_log":
+                connectionlogs.append(msg["data"])
             stdscr.clear()
             stdscr.refresh()
         except queue.Empty:
@@ -106,12 +126,12 @@ def accept_connection(server_sock):
     print(f"Accepted connection from {addr}")
     current_id = len(connections)
     connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging())
-    message_queue.put(f"Update {current_id}")
+    configuration.send_message(f"Update {current_id}")
     connections.append(connection)
     if not selector.get_map().get(conn.fileno()):  
         selector.register(conn, selectors.EVENT_READ, connection.handle_connection)
 
-def start_server(host='127.0.0.1', port=config["command_port"]):
+def start_server(host='127.0.0.1', port=configuration.get_command_port()):
     """Start the non-blocking server."""
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow address reuse

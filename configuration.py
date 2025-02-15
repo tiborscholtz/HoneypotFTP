@@ -1,3 +1,5 @@
+import json
+import queue
 class Configuration:
     def __init__(self,_type, _data_port,_command_port,_filesystem_depth,_file_ratio,_directory_ratio,_average_entity_per_directory,_logging,_allowed_users):
         self._type = _type
@@ -9,8 +11,15 @@ class Configuration:
         self._average_entity_per_directory = _average_entity_per_directory
         self._logging = _logging
         self._allowed_users = _allowed_users
+        self._message_queue = queue.Queue()
         pass
     
+    def send_message(self,_data):
+        self._message_queue.put(_data)
+
+    def get_message(self):
+        return self._message_queue.get_nowait()
+
     def get_type(self):
         return self._type
 
@@ -52,3 +61,9 @@ class Configuration:
                 ["Logging", self._logging,"Enable logging and creation of log files"],
                 ["Allowed users", self._allowed_users,"Allowed users for parallel usage"],
          ]}
+
+
+file = open("./config.json")
+config = json.loads(file.read())
+file.close()
+configuration = Configuration(config["server_type"],config["data_port"],config["command_port"],config["filesystem_depth"],config["file_ratio"],config["directory_ratio"],config["average_entity_per_directory"],config["logging"],config["allowed_users"])
