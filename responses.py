@@ -47,11 +47,27 @@ RESPONSES = {
             }
         ]
     },
+    "PORT":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"200 PORT command successful."
+            }
+        ]
+    },
     "CWD":{
         "default":[
             {
                 "type":"plain",
                 "content":"250 OK. Current directory is _DIRECTORY_"
+            }
+        ]
+    },
+    "EPSV":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"229 Entering Extended Passive Mode (|||_PORT_|)"
             }
         ]
     },
@@ -79,11 +95,11 @@ RESPONSES = {
             },
             {
                 "type":"plain",
-                "content":"226-Options: -a -l"
+                "content":"226-Options: -a -l "
             },
             {
                 "type":"plain",
-                "content":"226 6 _TOTALMATCHES_ total"
+                "content":"226 _TOTALMATCHES_ matches total"
             },
             {
                 "type":"data",

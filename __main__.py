@@ -107,8 +107,6 @@ def curses_interface(stdscr):
         try:
             msg = configuration.get_message()  # Non-blocking get from queue
             sys.stdout = sys.__stdout__
-            print("msg")
-            print(msg)
             if "type" not in msg or "data" not in msg:
                 continue
             if msg["type"] == "send_log":
@@ -123,7 +121,6 @@ def curses_interface(stdscr):
 def accept_connection(server_sock):
     """Accept a new connection and create a Connection object."""
     conn, addr = server_sock.accept()
-    print(f"Accepted connection from {addr}")
     current_id = len(connections)
     connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging())
     configuration.send_message(f"Update {current_id}")
@@ -138,16 +135,15 @@ def start_server(host='127.0.0.1', port=configuration.get_command_port()):
     server_sock.bind((host, port))
     server_sock.listen(100)
     server_sock.setblocking(False)  # Set the server socket to non-blocking mode
-    print(f"Server started on {host}:{port}")
     selector.register(server_sock, selectors.EVENT_READ, accept_connection)
     try:
         while True:
-            events = selector.select(timeout=None)  # Wait for events
+            events = selector.select()  # Wait for events
             for key, _ in events:
                 callback = key.data  # Retrieve the callback function
                 callback(key.fileobj)  # Call the callback with the socket
     except KeyboardInterrupt:
-        print("Server is shutting down...")
+        pass
     finally:
         server_sock.close()
         selector.close()
@@ -159,6 +155,7 @@ def create_server_structure():
 
 if __name__ == "__main__":
     #create_server_structure()
-    threading.Thread(target=start_server,daemon=True).start()
-    curses.wrapper(curses_interface)
+    #threading.Thread(target=start_server,daemon=True).start()
+    #curses.wrapper(curses_interface)
+    start_server()
     pass
