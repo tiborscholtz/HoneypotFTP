@@ -87,6 +87,14 @@ RESPONSES = {
             }
         ]
     },
+    "DELE":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"250 Deleted _FILE_"
+            }
+        ]
+    },
     "LIST":{
         "default":[
             {
@@ -128,6 +136,10 @@ RESPONSES = {
             {
                 "type":"plain",
                 "content":"150 _BYTESTODOWNLOAD_ kbytes to download"
+            },
+            {
+                "type":"data",
+                "content":"_DATA_"
             },
             {
                 "type":"plain",

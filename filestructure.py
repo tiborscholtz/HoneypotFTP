@@ -28,9 +28,6 @@ class FileStructure:
             file = EntityFile(True,True,True,True,False,True,True,False,True,"10","www-data","www-data","1000","Jan 20 18:59","todo","txt")
             self._structure.append(file)
             pass
-        for i in range(len(self._structure)):
-            print(self._structure[i].get_ls_output())
-        pass
 
     def generate_name(self,length = 10):
         random_name = ""

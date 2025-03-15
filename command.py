@@ -1,5 +1,6 @@
 import re
 from responses import RESPONSES
+import copy
 class Command:
 
     def __init__(self,_command:bytes):
@@ -29,15 +30,24 @@ class Command:
     def get_response(self,_parameters) -> list:
         if self._command not in RESPONSES:
             return []
-        command_response = RESPONSES[self._command]
+        command_response = copy.deepcopy(RESPONSES[self._command])
         if "default" not in command_response:
             return []
-        current_response = command_response["default"]
+        current_response = copy.deepcopy(command_response["default"])
         return_data = []
         for i in range(len(current_response)):
-            one_response = current_response[i]
-            for p in _parameters.keys():
-                one_response["content"] = one_response["content"].replace("_"+p.upper()+"_",str(_parameters[p]))
+            one_response = copy.deepcopy(current_response[i])
+            handled = False
+            for key, value in _parameters.items():
+                if handled == True:
+                    continue
+                if "_"+key.upper()+"_" == one_response["content"]:
+                    one_response["content"] = value
+                    handled = True
+                    continue
+                if isinstance(value,(str)) == False:
+                    value = str(_parameters[key])
+                one_response["content"] = one_response["content"].replace("_"+key.upper()+"_",value)
             pass
             return_data.append(one_response)
         return return_data

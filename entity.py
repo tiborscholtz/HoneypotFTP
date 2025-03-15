@@ -1,5 +1,6 @@
 class Entity:
     def __init__(self,_owner_read,_owner_write,_owner_execute,_group_read,_group_write,_group_execute,_other_read,_other_write,_other_execute,_link_count,_owner,_group,_size,_modified_at,_name):
+        self._active = True
         self._owner_read = _owner_read
         self._owner_write = _owner_write
         self._owner_execute = _owner_execute
@@ -16,6 +17,12 @@ class Entity:
         self._modified_at = _modified_at
         self._name = _name
         pass
+    
+    def is_active(self):
+        return self._active
+
+    def set_active(self,_value):
+        self._active = _value
     
     def get_name(self):
         return self._name
@@ -62,6 +69,11 @@ class Entity:
     def get_link_count(self):
         return self._link_count
     
+    def is_name_equal(self,_sent_name):
+        if hasattr(self,"_is_directory"):
+            return _sent_name == self._name
+        return (self._name + "." + self._extension) == _sent_name
+
     def get_ls_output(self):
         # drwxr-xr-x   10 33         www-data         4096 Oct  3  2022 demo
         return_value = ""
@@ -79,13 +91,13 @@ class Entity:
         return_value += "w" if self._other_write == True else "-"
         return_value += "x" if self._other_execute == True else "-"
         return_value += "\t"
-        return_value += self._link_count
+        return_value += str(self._link_count)
         return_value += "\t"
         return_value += self._owner
         return_value += "\t"
         return_value += self._group
         return_value += "\t"
-        return_value += self._size
+        return_value += str(self._size)
         return_value += "\t"
         return_value += self._modified_at
         return_value += "\t"
