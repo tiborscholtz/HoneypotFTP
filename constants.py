@@ -18,6 +18,7 @@ FILE_TYPES = {
 }
 
 DIRECTORIES = {
+    "root":{"files":["html","txt","php","sql"],"directories":["css","web","data","templates","js","assets","plugins","work","todo"]},
     "web": {"files": ["html", "css", "php"], "directories": ["css", "data", "templates", "js", "assets"]},
     "documents": {"files": ["docx", "pdf", "txt"], "directories": ["reports", "invoices", "manuals", "letters", "drafts"]},
     "media": {"files": ["jpg", "png", "mp4", "mp3"], "directories": ["images", "videos", "audio", "thumbnails", "backgrounds"]},

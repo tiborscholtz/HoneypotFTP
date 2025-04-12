@@ -3,7 +3,7 @@
     "data_port":8891,
     "command_port":8892,
     "filesystem_depth":3,
-    "average_entity_per_directory":5,
+    "average_entity_per_directory":10,
     "file_ratio":0.8,
     "directory_ratio":0.2,
     "logging":false,

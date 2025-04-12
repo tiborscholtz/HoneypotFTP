@@ -73,9 +73,15 @@ class Entity:
         if hasattr(self,"_is_directory"):
             return _sent_name == self._name
         return (self._name + "." + self._extension) == _sent_name
-
+    def is_directory(self):
+        return hasattr(self,"_is_directory")
+    def get_ls_simplified(self):
+        return_value = ""
+        return_value += self._name
+        if hasattr(self,"_extension"):
+            return_value += "." + self._extension
+        return return_value
     def get_ls_output(self):
-        # drwxr-xr-x   10 33         www-data         4096 Oct  3  2022 demo
         return_value = ""
         if hasattr(self,"_is_directory"):
             return_value += "d"

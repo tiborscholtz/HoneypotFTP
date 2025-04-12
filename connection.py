@@ -8,12 +8,13 @@ from entityFolder import EntityFolder
 from entityFile import EntityFile
 from command import Command
 from configuration import Configuration
+from filestructure import FileStructure
 from logger import Logger
 import os
 import copy
 class Connection:
 
-    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging):
+    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging,file_structure:list):
         self._type = None
         self._id = _id
         self._selector = _selector
@@ -29,37 +30,30 @@ class Connection:
         self._port_portnumber = None
         self._client_socket = None
         self._connection_mode = None
-        self._entries = [
-            EntityFolder(True,True,True,True,True,True,True,False,True,6,"tibor","tibor",4096,"Feb 15 20:23","."),
-            EntityFolder(True,True,True,True,True,True,True,False,True,19,"tibor","tibor",4096,"Feb 23 20:12","."),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",1548,"Feb 15 10:41","command","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",236,"Feb 15 16:37","config","json"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",2806,"Feb 15 20:35","configuration","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",372,"Feb 15 20:25","connectionlog","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",7368,"Feb 28 20:04","connection","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",4837,"Feb 15 20:20","constants","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",252,"Feb 14 17:26","default_config","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",566,"Feb 14 18:54","entityFile","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",485,"Feb 15 17:13","entityFolder","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",3145,"Feb 13 22:27","entity","py"),
-            EntityFolder(True,True,True,True,True,True,True,False,True,1,"tibor","tibor",4096,"Jan 22 19:45","env"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",1702,"Feb 19 19:04","filestructure","py"),
-            EntityFile(True,True,False,True,False,False,True,False,False,1,"tibor","tibor",252816,"Dec 31 23:36","ftp_test","pcapng"),
-            EntityFolder(True,True,True,True,True,True,True,False,True,8,"tibor","tibor",4096,"Feb 15 21:05",".git"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",3415,"Jan 22 19:44","","gitignore"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",1069,"Jan 22 19:44","LICENSE",""),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",1121,"Feb 15 20:55","logger","py"),
-            EntityFolder(True,True,True,True,True,True,True,False,True,2,"tibor","tibor",4096,"Feb 15 16:37","logs"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",6798,"Feb 28 18:45","__main__","py"),
-            EntityFolder(True,True,True,True,True,True,True,False,True,2,"tibor","tibor",4096,"Feb 28 20:04","__pycache__"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",2983,"Jan 22 20:45","README","md"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",3282,"Feb 28 20:03","responses","py"),
-            EntityFile(True,True,False,True,True,False,True,False,False,1,"tibor","tibor",2453,"Feb 15 17:15","screen","py"),
-        ]
-        command = Command(b'WELCOME')
-        _response = self._get_command_response(command)
-        self.send_responses(_response)
+        self._entries = file_structure
+        self._current_path = "/"
+        self._current_elements = file_structure
+        self.send_responses(self._get_command_response(Command(b'WELCOME')))
         pass
+
+    def set_current_elements(self,_path:str):
+        if _path == "/" or _path == "/.":
+            self._current_elements = self._entries
+            return
+        filesystem_copy = copy.deepcopy(self._entries)
+        self._current_path = _path
+        path_exploded = self._current_path.split("/")
+        for i in range(len(path_exploded)):
+            for j in range(len(filesystem_copy)):
+                found = False
+                if filesystem_copy[j].is_directory():
+                    if filesystem_copy[j].is_name_equal(path_exploded[i]):
+                        found = True
+                        filesystem_copy = copy.deepcopy(filesystem_copy[j]._entries)
+                        break
+                if found == True:
+                    break
+        self._current_elements = filesystem_copy
 
 
     def get_id(self):
@@ -67,6 +61,9 @@ class Connection:
     
     def get_ip_address(self):
         return self._ip_address
+    
+    def get_current_path(self):
+        return self._current_path
     
     def get_connected_at(self):
         return self._connected_at
@@ -108,13 +105,26 @@ class Connection:
             self._logger.write_log("PASS","Password: " + _command.get_parameter_at_index(0) + " login request.")
             _response = _command.get_response({"directory":"/"})
             pass
-        if _command.is_command("PWD"):
-            self._logger.write_log("PWD","Print working directory requested. Current directory is: /.")
+        if _command.is_command("SITE") and _command.get_parameters_length() == 3:
+            subcommand = _command.get_parameter_at_index(0)
+            if subcommand == "CHMOD":
+                pass
+            self._logger.write_log("PASS","Password: " + _command.get_parameter_at_index(0) + " login request.")
             _response = _command.get_response({"directory":"/"})
             pass
-        if _command.is_command("CWD"):
-            self._logger.write_log("PWD","Change working directory requested. Current directory is: /.")
+        if _command.is_command("MKD") and _command.get_parameters_length() == 1:
+            directory_name = _command.get_parameter_at_index(0)
+            self._logger.write_log("MKD","Directory creation requested. directory name: ".directory_name)
             _response = _command.get_response({"directory":"/"})
+            pass
+        if _command.is_command("PWD"):
+            self._logger.write_log("PWD","Print working directory requested. Current directory is: "+self._current_path)
+            _response = _command.get_response({"directory":self._current_path})
+            pass
+        if _command.is_command("CWD"):
+            self.set_current_elements(_command.get_parameter_at_index(0))
+            self._logger.write_log("PWD","Change working directory requested. Current directory is: "+self._current_path)
+            _response = _command.get_response({"directory":self._current_path})
             pass
         if _command.is_command("PORT") and _command.get_parameters_length() == 1:
             self._logger.write_log("PORT","PORT requested from client.")
@@ -153,10 +163,13 @@ class Connection:
             filename = _command.get_parameter_at_index(0)
             filenameSplitted = filename.split("/")
             filename = filenameSplitted[len(filenameSplitted) - 1]
+            if len(filenameSplitted) > 1:
+                new_path_str = "/".join([x for x in filenameSplitted[:-1] if x])
+                self.set_current_elements(new_path_str)
             fake_data = os.urandom(2 * 1024)
-            for i in range(len(self._entries)):
-                if self._entries[i].is_name_equal(filename):
-                    fake_data = os.urandom(self._entries[i].get_size())
+            for i in range(len(self._current_elements)):
+                if self._current_elements[i].is_name_equal(filename):
+                    fake_data = os.urandom(self._current_elements[i].get_size())
                     break
             self._logger.write_log("RETR","Download requested: "+filename)
             _response = _command.get_response({"data":fake_data,"bytestodownload":len(fake_data),"secondstotransfer":2,"mbytespersecond":2})
@@ -176,7 +189,7 @@ class Connection:
                 _response = _command.get_response({"type":"ASCII"})
             pass
         if _command.is_command("LIST"):
-            ftp_list_response = "\r\n".join([elem.get_ls_output() for elem in self._entries if elem.is_active()])
+            ftp_list_response = "\r\n".join([elem.get_ls_output() for elem in self._current_elements if elem.is_active()])
             self._logger.write_log("LIST","Listing files requested.")
             _response = _command.get_response({"data":ftp_list_response,"totalmatches":len(self._entries)})
             pass

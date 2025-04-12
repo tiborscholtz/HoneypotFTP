@@ -1,4 +1,12 @@
 RESPONSES = {
+    "DEFAULTERROR":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"500 Syntax error, command unrecognized."
+            }
+        ]
+    },
     "WELCOME":{
         "default":[
             {
@@ -79,11 +87,35 @@ RESPONSES = {
             }
         ]
     },
+    "MKD":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"257 _DIRECTORY_ : The directory was successfully created"
+            }
+        ],
+    },
     "TYPE":{
         "default":[
             {
                 "type":"plain",
                 "content":"200 TYPE is now _TYPE_"
+            }
+        ]
+    },
+    "RMD":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"250 The directory was successfully removed"
+            }
+        ]
+    },
+    "SITECHMOD":{
+        "default":[
+            {
+                "type":"plain",
+                "content":"200 Permissions changed on _FILE_"
             }
         ]
     },

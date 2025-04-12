@@ -17,6 +17,7 @@ connectionlogs : List[ConnectionLog] = list()
 import threading
 selector = selectors.DefaultSelector()
 screen = Screen()
+f = FileStructure(configuration.get_filesystem_depth(),configuration.get_file_ratio(),configuration.get_directory_ratio(),configuration.get_average_entity_per_directory())
 
 
 def get_x_center(text,maxx):
@@ -39,29 +40,29 @@ def curses_interface(stdscr):
             if len(connections) > 0:
                 connections_text = "There are "+str(len(connections))+" connections...."
                 stdscr.addstr(4, get_x_center(connections_text,maxx),connections_text,curses.color_pair(3))
-                col_widths = [30, 20,50]  # Column widths
+                col_widths = [30, 20,50,80]
                 col_width_max = floor((maxx / 2) - (sum(col_widths) / 2))
-                start_y, start_x = 10, col_width_max  # Starting position
-                headers = ["ID","IP address","Connected at"]
+                start_y, start_x = 10, col_width_max 
+                headers = ["ID","IP address","Connected at","Current path"]
                 data = []
                 for i in range(len(connections)):
-                    data.append([connections[i].get_id(),connections[i].get_ip_address(),connections[i].get_connected_at()])
+                    data.append([connections[i].get_id(),connections[i].get_ip_address(),connections[i].get_connected_at(),connections[i].get_current_path()])
                 screen.print_table(stdscr,col_widths,headers,data,start_x,start_y)
                 pass
             else:
                 no_connection_text = "There are no connections...."
                 stdscr.addstr(4, get_x_center(no_connection_text,maxx),no_connection_text,curses.color_pair(3) )
         if screen.is_current_page("s"):
-            col_widths = [30, 20,70]  # Column widths
+            col_widths = [30, 20,70]
             col_width_max = floor((maxx / 2) - (sum(col_widths) / 2))
-            start_y, start_x = 10, col_width_max  # Starting position
+            start_y, start_x = 10, col_width_max
             config_data = configuration.get_object_format()
             screen.print_table(stdscr,col_widths,config_data["headers"],config_data["data"],start_x,start_y)
             pass
         if screen.is_current_page("l"):
-            col_widths = [40, 40,70]  # Column widths
+            col_widths = [40, 40,70]
             col_width_max = floor((maxx / 2) - (sum(col_widths) / 2))
-            start_y, start_x = 10, col_width_max  # Starting position
+            start_y, start_x = 10, col_width_max
             config_data = configuration.get_object_format()
             columns = ["IP Address","Timestamp","Text"]
             data = []
@@ -87,10 +88,10 @@ def curses_interface(stdscr):
             stdscr.clear()
             stdscr.refresh()
             pass
-        if key != -1:  # If a valid key is pressed
+        if key != -1:
             stdscr.refresh()
         try:
-            msg = configuration.get_message()  # Non-blocking get from queue
+            msg = configuration.get_message()
             sys.stdout = sys.__stdout__
             if "type" not in msg or "data" not in msg:
                 continue
@@ -99,48 +100,40 @@ def curses_interface(stdscr):
             stdscr.clear()
             stdscr.refresh()
         except queue.Empty:
-            pass  # No new 
+            pass
     sys.stdout = sys.__stdout__
 
 
 def accept_connection(server_sock):
-    """Accept a new connection and create a Connection object."""
     conn, addr = server_sock.accept()
     current_id = len(connections)
-    connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging())
+    connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging(),f._structure)
     configuration.send_message(f"Update {current_id}")
     connections.append(connection)
     if not selector.get_map().get(conn.fileno()):  
         selector.register(conn, selectors.EVENT_READ, connection.handle_connection)
 
 def start_server(host='127.0.0.1', port=configuration.get_command_port()):
-    """Start the non-blocking server."""
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow address reuse
+    server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_sock.bind((host, port))
     server_sock.listen(100)
-    server_sock.setblocking(False)  # Set the server socket to non-blocking mode
+    server_sock.setblocking(False)
     selector.register(server_sock, selectors.EVENT_READ, accept_connection)
     try:
         while True:
-            events = selector.select()  # Wait for events
+            events = selector.select()
             for key, _ in events:
-                callback = key.data  # Retrieve the callback function
-                callback(key.fileobj)  # Call the callback with the socket
+                callback = key.data 
+                callback(key.fileobj) 
     except KeyboardInterrupt:
         pass
     finally:
         server_sock.close()
         selector.close()
 
-def create_server_structure():
-    f = FileStructure(configuration.get_filesystem_depth(),configuration.get_file_ratio(),configuration.get_directory_ratio(),configuration.get_average_entity_per_directory())
-    f.generate_directory_structure()
-    pass
-
 if __name__ == "__main__":
-    #create_server_structure()
-    #threading.Thread(target=start_server,daemon=True).start()
-    #curses.wrapper(curses_interface)
-    start_server()
+    threading.Thread(target=start_server,daemon=True).start()
+    curses.wrapper(curses_interface)
+    #start_server()
     pass
