@@ -6,6 +6,6 @@
     "average_entity_per_directory":10,
     "file_ratio":0.8,
     "directory_ratio":0.2,
-    "logging":false,
+    "logging":true,
     "allowed_users":50
 }

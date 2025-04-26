@@ -13,10 +13,10 @@ HoneypotFTP is a python based application that acts as an FTP server - except th
 
 ## Features
 
-- [ ] **Simple installation**: Configure a simple JSON file, or use the reasonable defaults
-- [ ] **Detailed logging**: Creates a separate log file for each connection, and logs every command provided by the connection
-- [ ] **Reporting capabilities**: Based on the log files, most known report formats(XML,JSON,CSv) are available
+- [x] **Simple installation**: Configure a simple JSON file, or use the reasonable defaults
+- [x] **Detailed logging**: Creates a separate log file for each connection, and logs every command provided by the connection
 - [ ] **Fake file structure**: dynamic folder structure creation, based on the configuration options
+- [ ] **Reporting capabilities**: Based on the log files, most known report formats(XML,JSON,CSv) are available
 - [ ] **Username restriction**: Can be configured to accept every connection(even anonymous login), or restrict to some username-password pairs
 
 ## Installation

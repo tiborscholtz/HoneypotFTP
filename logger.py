@@ -5,6 +5,7 @@ from connectionlog import ConnectionLog
 
 class Logger:
     def __init__(self,_ip_address,_enabled):
+        self._separator = ";"
         self._enabled = _enabled
         self._ip_address = _ip_address
         if _enabled == False:
@@ -16,8 +17,8 @@ class Logger:
 
     def write_log(self,_title,_content) -> bool:
         _at = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-        _content = _title + " - " + _content
-        _data_to_write = _at + " - " + _content+"\r\n"
+        _content = _title + self._separator + _content
+        _data_to_write = _at + self._separator + _content+"\r\n"
         configuration.send_message({"type":"send_log","data":ConnectionLog(self._ip_address,_at,_content)})
         if self._enabled == False:
             return True

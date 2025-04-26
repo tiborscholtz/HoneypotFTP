@@ -52,7 +52,7 @@ class Configuration:
             "headers": ["Property", "Value","Description"],
             "data": [
                 ["Type",self._type,"HoneyFTP can emulate several FTP server's response palette."],
-                ["Data port",self._data_port,"TODO"],
+                ["Data port",self._data_port,"Default port used to transfer data between the server and the clients"],
                 ["Command port", self._command_port,"Default port used for communiation between the server and the clients"],
                 ["Filesystem depth", self._filesystem_depth,"The server creates a file structure, with the given amount of depth"],
                 ["File ratio", self._file_ratio,"Percent of files per level"],

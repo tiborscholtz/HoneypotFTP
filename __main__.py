@@ -9,10 +9,11 @@ import os
 from typing import List
 from configuration import configuration
 from connection import Connection
+from connectionManager import ConnectionManager
 from connectionlog import ConnectionLog
 from filestructure import FileStructure
 from screen import Screen
-connections: List[Connection] = list()
+connections = ConnectionManager()
 connectionlogs : List[ConnectionLog] = list()
 import threading
 selector = selectors.DefaultSelector()
@@ -37,16 +38,18 @@ def curses_interface(stdscr):
         if screen.is_current_page("c"):
             welcome_text = "Welcome to HoneypotFTP!"
             stdscr.addstr(1, get_x_center(welcome_text,maxx), welcome_text, curses.color_pair(16))
-            if len(connections) > 0:
-                connections_text = "There are "+str(len(connections))+" connections...."
+            connections_length = connections.get_all_connections_length()
+            if connections_length > 0:
+                connections_text = "There are "+str(connections_length)+" connections...."
                 stdscr.addstr(4, get_x_center(connections_text,maxx),connections_text,curses.color_pair(3))
                 col_widths = [30, 20,50,80]
                 col_width_max = floor((maxx / 2) - (sum(col_widths) / 2))
                 start_y, start_x = 10, col_width_max 
                 headers = ["ID","IP address","Connected at","Current path"]
                 data = []
-                for i in range(len(connections)):
-                    data.append([connections[i].get_id(),connections[i].get_ip_address(),connections[i].get_connected_at(),connections[i].get_current_path()])
+                current_connections = connections.get_all_connections()
+                for i in range(len(current_connections)):
+                    data.append([current_connections[i].get_id(),current_connections[i].get_ip_address(),current_connections[i].get_connected_at(),current_connections[i].get_current_path()])
                 screen.print_table(stdscr,col_widths,headers,data,start_x,start_y)
                 pass
             else:
@@ -70,9 +73,9 @@ def curses_interface(stdscr):
                 data.append([connectionlogs[i].get_ip_address(),connectionlogs[i].get_timestamp(),connectionlogs[i].get_text()])
             screen.print_table(stdscr,col_widths,columns,data,start_x,start_y)
             pass
-        key = stdscr.getch()  # Capture keypress
+        key = stdscr.getch()
         if key == ord('q'):
-            break  # Quit when 'q' is pressed
+            break
         if  key == ord('c'):
             screen.change_current_page("c")
             stdscr.clear()
@@ -106,14 +109,15 @@ def curses_interface(stdscr):
 
 def accept_connection(server_sock):
     conn, addr = server_sock.accept()
-    current_id = len(connections)
-    connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging(),f._structure)
+    connections_length = connections.get_all_connections_length()
+    current_id = connections_length
+    connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging(),f._structure,connections)
     configuration.send_message(f"Update {current_id}")
-    connections.append(connection)
+    connections.add_connection(connection)
     if not selector.get_map().get(conn.fileno()):  
         selector.register(conn, selectors.EVENT_READ, connection.handle_connection)
 
-def start_server(host='127.0.0.1', port=configuration.get_command_port()):
+def start_server(host='0.0.0.0', port=configuration.get_command_port()):
     server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     server_sock.bind((host, port))
@@ -133,6 +137,9 @@ def start_server(host='127.0.0.1', port=configuration.get_command_port()):
         selector.close()
 
 if __name__ == "__main__":
+    if os.path.exists("./logs") == False:
+        os.mkdir("./logs")
+        pass
     threading.Thread(target=start_server,daemon=True).start()
     curses.wrapper(curses_interface)
     #start_server()

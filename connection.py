@@ -4,17 +4,17 @@ from math import floor
 import selectors
 import socket
 import select
+from connectionManager import ConnectionManager
 from entityFolder import EntityFolder
 from entityFile import EntityFile
 from command import Command
 from configuration import Configuration
-from filestructure import FileStructure
 from logger import Logger
 import os
 import copy
 class Connection:
 
-    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging,file_structure:list):
+    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging,file_structure:list,connections:ConnectionManager):
         self._type = None
         self._id = _id
         self._selector = _selector
@@ -33,9 +33,12 @@ class Connection:
         self._entries = file_structure
         self._current_path = "/"
         self._current_elements = file_structure
+        self.connections = connections
         self.send_responses(self._get_command_response(Command(b'WELCOME')))
         pass
 
+    def get_id(self):
+        return self._id
     def set_current_elements(self,_path:str):
         if _path == "/" or _path == "/.":
             self._current_elements = self._entries
@@ -79,10 +82,10 @@ class Connection:
                 self._data_socket = None
                 self._data_port = None
         self._data_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self._data_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)  # Allow address reuse
+        self._data_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._data_socket.bind(('', 0))
         self._data_socket.listen(10)
-        self._data_socket.setblocking(False)  # Set
+        self._data_socket.setblocking(False)
         self._data_port = self._data_socket.getsockname()[1]
         self._port_portnumber = port_n
         ports = {"first":0,"second":0}
@@ -98,36 +101,36 @@ class Connection:
             _response = _command.get_response({"current":1,"allowed_users":50,"time":datetime.today().strftime('%Y-%m-%d %H:%M:%S'),"port":self._configuration.get_command_port()})
             pass
         if _command.is_command("USER"):
-            self._logger.write_log("USER","Username: " + _command.get_parameter_at_index(0) + " login request.")
+            self._logger.write_log("USER",_command.get_parameter_at_index(0))
             _response = _command.get_response({"username":_command.get_parameter_at_index(0)})
             pass
         if _command.is_command("PASS"):
-            self._logger.write_log("PASS","Password: " + _command.get_parameter_at_index(0) + " login request.")
+            self._logger.write_log("PASS",_command.get_parameter_at_index(0))
             _response = _command.get_response({"directory":"/"})
             pass
         if _command.is_command("SITE") and _command.get_parameters_length() == 3:
             subcommand = _command.get_parameter_at_index(0)
             if subcommand == "CHMOD":
                 pass
-            self._logger.write_log("PASS","Password: " + _command.get_parameter_at_index(0) + " login request.")
+            self._logger.write_log("PASS",_command.get_parameter_at_index(0))
             _response = _command.get_response({"directory":"/"})
             pass
         if _command.is_command("MKD") and _command.get_parameters_length() == 1:
             directory_name = _command.get_parameter_at_index(0)
-            self._logger.write_log("MKD","Directory creation requested. directory name: ".directory_name)
+            self._logger.write_log("MKD",directory_name)
             _response = _command.get_response({"directory":"/"})
             pass
         if _command.is_command("PWD"):
-            self._logger.write_log("PWD","Print working directory requested. Current directory is: "+self._current_path)
+            self._logger.write_log("PWD",self._current_path)
             _response = _command.get_response({"directory":self._current_path})
             pass
         if _command.is_command("CWD"):
             self.set_current_elements(_command.get_parameter_at_index(0))
-            self._logger.write_log("PWD","Change working directory requested. Current directory is: "+self._current_path)
+            self._logger.write_log("PWD",self._current_path)
             _response = _command.get_response({"directory":self._current_path})
             pass
         if _command.is_command("PORT") and _command.get_parameters_length() == 1:
-            self._logger.write_log("PORT","PORT requested from client.")
+            self._logger.write_log("PORT",_command.get_parameter_at_index(0))
             sent_data = _command.get_parameter_at_index(0).split(',')
             data_p = (int(sent_data[4]) * 256) + int(sent_data[5])
             _ports = self._setup_data_socket(data_p)
@@ -136,7 +139,7 @@ class Connection:
             _response = _command.get_response({})
             pass
         if _command.is_command("PASV"):
-            self._logger.write_log("PWD","Passive mode requested.")
+            self._logger.write_log("PASV","Passive mode requested.")
             _ports = self._setup_data_socket()
             ip = socket.gethostbyname(socket.gethostname())
             self._connection_mode = "PASV"
@@ -156,7 +159,7 @@ class Connection:
                 if self._entries[i].is_name_equal(filename):
                     self._entries[i].set_active(False)
                     break
-            self._logger.write_log("DELE","File deleted: "+filename)
+            self._logger.write_log("DELE",filename)
             _response = _command.get_response({"file":filename_to_delete})
             pass
         if _command.is_command("RETR") and _command.get_parameters_length() == 1:
@@ -171,30 +174,30 @@ class Connection:
                 if self._current_elements[i].is_name_equal(filename):
                     fake_data = os.urandom(self._current_elements[i].get_size())
                     break
-            self._logger.write_log("RETR","Download requested: "+filename)
+            self._logger.write_log("RETR",filename)
             _response = _command.get_response({"data":fake_data,"bytestodownload":len(fake_data),"secondstotransfer":2,"mbytespersecond":2})
             pass
         if _command.is_command("TYPE") and _command.get_parameters_length() == 1:
             if _command.get_parameter_at_index(0) == "A":
                 self._type = "A"
-                self._logger.write_log("TYPE","ASCII type requested.")
+                self._logger.write_log("TYPE","ASCII")
                 _response = _command.get_response({"type":"ASCII"})
             elif _command.get_parameter_at_index(0) == "I":
                 self._type = "I"
-                self._logger.write_log("TYPE","8 bit binary type requested.")
+                self._logger.write_log("TYPE","8bit")
                 _response = _command.get_response({"type":"I"})
             else:
                 self._type = "A"
-                self._logger.write_log("TYPE","ASCII type requested.")
+                self._logger.write_log("TYPE","ASCII")
                 _response = _command.get_response({"type":"ASCII"})
             pass
         if _command.is_command("LIST"):
             ftp_list_response = "\r\n".join([elem.get_ls_output() for elem in self._current_elements if elem.is_active()])
-            self._logger.write_log("LIST","Listing files requested.")
+            self._logger.write_log("LIST","Listing")
             _response = _command.get_response({"data":ftp_list_response,"totalmatches":len(self._entries)})
             pass
         if _command.is_command("QUIT"):
-            self._logger.write_log("QUIT","Quit requested.")
+            self._logger.write_log("QUIT","Quit")
             _response = _command.get_response({"downloaded":"0","uploaded":"0"})
             pass
         return _response
@@ -203,7 +206,7 @@ class Connection:
         for to_send in _responses:
             if to_send["type"] == "plain":
                 try:
-                    self._connection.sendall(bytes(to_send["content"]+"\r\n",encoding="utf-8"))  # Echo the data back to the client
+                    self._connection.sendall(bytes(to_send["content"]+"\r\n",encoding="utf-8"))
                     pass
                 except Exception:
                     pass
@@ -220,26 +223,27 @@ class Connection:
     def handle_connection(self,_connection):
         """Handle ftp communication with a client."""
         try:
-            data = _connection.recv(1024)  # Read data from the client
+            data = _connection.recv(1024)
             if data:
                 command = Command(data)
                 _response = self._get_command_response(command)
                 self.send_responses(_response)
             else:
-                self._selector.unregister(self._connection)  # Unregister the connection
+                self._selector.unregister(self._connection)
                 self._connection.close()
                 self._logger.close_log()
+                self.connections.remove_connection(self._id)
         except ConnectionResetError:
             self._selector.unregister(self._connection)
             self._connection.close()
             self._logger.close_log()
+            self.connections.remove_connection(self._id)
 
 
     def send_data_port(self, data_socket,_data):
         data_conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        data_conn.connect(("0.0.0.0", self._port_portnumber))  # Connect to the client's specified port     
-        if isinstance(_data,(bytearray,bytes)) == False:
-            _data = _data.encode("utf-8")
+        data_conn.connect(("0.0.0.0", self._port_portnumber))  # Connect to the client's specified port
+        _data = _data.encode("utf-8") if isinstance(_data,(bytearray,bytes)) == False else _data
         data_conn.sendall(_data)
         data_conn.close()
         self._port_portnumber = None
