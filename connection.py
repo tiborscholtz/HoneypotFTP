@@ -14,13 +14,13 @@ import os
 import copy
 class Connection:
 
-    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging,file_structure:list,connections:ConnectionManager):
+    def __init__(self,_id,_connection,_ip_address,_selector,_configuration:Configuration,_logging,file_structure:list,_connections:ConnectionManager,_extended_log_on_disconnect):
         self._type = None
         self._id = _id
         self._selector = _selector
         self._connection = _connection
         self._ip_address = _ip_address
-        self._logger = Logger(self._ip_address,_logging)
+        self._logger = Logger(self._ip_address,_logging,_extended_log_on_disconnect)
         self._configuration = _configuration
         self._connected_at = datetime.now()
         self._connection.setblocking(False)
@@ -33,7 +33,7 @@ class Connection:
         self._entries = file_structure
         self._current_path = "/"
         self._current_elements = file_structure
-        self.connections = connections
+        self._connections = _connections
         self.send_responses(self._get_command_response(Command(b'WELCOME')))
         pass
 
@@ -232,12 +232,12 @@ class Connection:
                 self._selector.unregister(self._connection)
                 self._connection.close()
                 self._logger.close_log()
-                self.connections.remove_connection(self._id)
+                self._connections.remove_connection(self._id)
         except ConnectionResetError:
             self._selector.unregister(self._connection)
             self._connection.close()
             self._logger.close_log()
-            self.connections.remove_connection(self._id)
+            self._connections.remove_connection(self._id)
 
 
     def send_data_port(self, data_socket,_data):

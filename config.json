@@ -1,11 +1,16 @@
 {
     "server_type":"default",
-    "data_port":8891,
     "command_port":8892,
     "filesystem_depth":3,
     "average_entity_per_directory":10,
     "file_ratio":0.8,
     "directory_ratio":0.2,
     "logging":true,
-    "allowed_users":50
+    "allowed_users":50,
+    "extended_log_on_disconnect":true,
+    "modification_minutes_from":20,
+    "modification_minutes_to":500,
+    "file_byte_size_min":1000,
+    "file_byte_size_max":50000,
+    "different_structure_per_client":false
 }

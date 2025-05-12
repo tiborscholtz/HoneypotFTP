@@ -1,3 +1,4 @@
+import copy
 import json
 from math import floor
 import selectors
@@ -111,7 +112,10 @@ def accept_connection(server_sock):
     conn, addr = server_sock.accept()
     connections_length = connections.get_all_connections_length()
     current_id = connections_length
-    connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging(),f._structure,connections)
+    file_structure = copy.deepcopy(f)
+    if configuration.get_different_structure_per_client() == True:
+        file_structure = FileStructure(configuration.get_filesystem_depth(),configuration.get_file_ratio(),configuration.get_directory_ratio(),configuration.get_average_entity_per_directory())
+    connection = Connection(current_id,conn, addr[0], selector,configuration,configuration.get_logging(),file_structure._structure,connections,configuration.get_extended_log_on_disconnect())
     configuration.send_message(f"Update {current_id}")
     connections.add_connection(connection)
     if not selector.get_map().get(conn.fileno()):  
@@ -142,5 +146,4 @@ if __name__ == "__main__":
         pass
     threading.Thread(target=start_server,daemon=True).start()
     curses.wrapper(curses_interface)
-    #start_server()
     pass
